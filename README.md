@@ -17,8 +17,8 @@ and start the server with
 docker run --name simple-server -d -p 8080:8080 server
 ```
 
-## Test
-Test the server by executing
+## Usage
+Request data from the server by executing one of the following calls:
 ```sh
 curl http://localhost:8080/city/{cityname}
 curl http://localhost:8080/city
