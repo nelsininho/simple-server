@@ -56,6 +56,8 @@ func FetchCity(w http.ResponseWriter, req *http.Request) {
 		if err == sql.ErrNoRows {
 			//if no result returned, log unknown city
 			log.Printf(" %v: unknown city", cityname)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("404 - City not found!"))
 			return
 		}
 	}
