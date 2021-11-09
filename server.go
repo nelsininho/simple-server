@@ -47,6 +47,9 @@ func FetchCity(w http.ResponseWriter, req *http.Request) {
 	db, err := sql.Open("postgres", "postgresql://docker:docker@postgres-db/world?sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Internal Server Error!"))
+		return
 	}
 
 	//get city information
@@ -76,6 +79,9 @@ func FetchCities(w http.ResponseWriter, req *http.Request) {
 	db, err := sql.Open("postgres", "postgresql://docker:docker@postgres-db/world?sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Internal Server Error!"))
+		return
 	}
 
 	//read results from db with or without limit, depending on whether it was requested
