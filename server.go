@@ -22,6 +22,14 @@ type City struct {
 	Population  int
 }
 
+func (c *City) Compare(c2 *City) bool {
+	return c.Id == c2.Id &&
+		c.Name == c2.Name &&
+		c.Countrycode == c2.Countrycode &&
+		c.District == c2.District &&
+		c.Population == c2.Population
+}
+
 func logging(f http.HandlerFunc) http.HandlerFunc {
 	//logging middleware for displaying the url path
 	return func(w http.ResponseWriter, req *http.Request) {
