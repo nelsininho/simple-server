@@ -18,10 +18,11 @@ type test struct {
 
 func TestCityHandler(t *testing.T) {
 	testcases := []test{
-		/*{
-			Url:  "/city",
-			Name: "NoRealCityName",
-		},*/
+		{
+			name: "Test with no real city name",
+			url:  "/city",
+			city: "NoRealCityName",
+		},
 		{
 			name: "Call with correct city name",
 			url:  "/city",
@@ -65,13 +66,19 @@ func TestCityHandler(t *testing.T) {
 			var city City
 			res := w.Result()
 
-			if err := json.NewDecoder(res.Body).Decode(&city); err != nil {
-				t.Fatal(err)
-			}
-			target = append(target, &city)
-			for index, result := range target {
-				if !result.Compare(test.want[index]) {
-					t.Fatal("Result does not match expected state")
+			if len(test.want) == 0 {
+				if res.StatusCode != 404 {
+					t.Fatal("Found resource, but did not want to")
+				}
+			} else {
+				if err := json.NewDecoder(res.Body).Decode(&city); err != nil {
+					t.Fatal(err)
+				}
+				target = append(target, &city)
+				for index, result := range target {
+					if !result.Compare(test.want[index]) {
+						t.Fatal("Result does not match expected state")
+					}
 				}
 			}
 		})
