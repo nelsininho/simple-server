@@ -12,9 +12,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const getCity = `SELECT id, name, countrycode, district, population FROM city WHERE name = $1`
 const getCities = `SELECT id, name, countrycode, district, population FROM city`
-const getCitiesWithLimit = `SELECT id, name, countrycode, district, population FROM city LIMIT $1`
 
 type City struct {
 	Id          int
@@ -25,6 +23,7 @@ type City struct {
 }
 
 func logging(f http.HandlerFunc) http.HandlerFunc {
+	//logging middleware for displaying the url path
 	return func(w http.ResponseWriter, req *http.Request) {
 		log.Printf("Called route %v`\n", req.URL.Path)
 		f(w, req)
@@ -32,47 +31,54 @@ func logging(f http.HandlerFunc) http.HandlerFunc {
 }
 
 func FetchCity(w http.ResponseWriter, req *http.Request) {
+	//read requested city name
 	vars := mux.Vars(req)
 	cityname := vars["name"]
 
-	log.Println("Name:", vars)
-
+	//connect do db
 	db, err := sql.Open("postgres", "postgresql://docker:docker@localhost:5432/world?sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	//get city information
 	city := City{}
-
-	if err = db.QueryRow(getCity, cityname).Scan(&city.Id, &city.Name, &city.Countrycode, &city.District, &city.Population); err != nil {
+	if err = db.QueryRow(getCities+` WHERE name = $1`, cityname).Scan(&city.Id, &city.Name, &city.Countrycode, &city.District, &city.Population); err != nil {
 		log.Println(err)
 		if err == sql.ErrNoRows {
+			//if no result returned, log unknown city
 			log.Printf(" %v: unknown city", cityname)
 			return
 		}
 	}
 
+	//return result in JSON format
 	log.Println(city)
 	json.NewEncoder(w).Encode(city)
 }
 
 func FetchCities(w http.ResponseWriter, req *http.Request) {
+	//read possible limit parameter
 	m, _ := url.ParseQuery(req.URL.RawQuery)
 	limit := m["limit"]
 
+	//connect to db
 	db, err := sql.Open("postgres", "postgresql://docker:docker@localhost:5432/world?sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	//read results from db with or without limit, depending on whether it was requested
 	cities := []City{}
 	var rows *sql.Rows
 	if len(limit) == 0 {
 		rows, err = db.Query(getCities)
 	} else {
-		rows, err = db.Query(getCitiesWithLimit, limit[0])
+		query := getCities + ` LIMIT $1`
+		rows, err = db.Query(query, limit[0])
 	}
 
+	//scan result rows and append them to return slice
 	if rows != nil {
 		for rows.Next() {
 			var city City
@@ -86,6 +92,7 @@ func FetchCities(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	//return result
 	json.NewEncoder(w).Encode(cities)
 }
 
