@@ -8,5 +8,5 @@ COPY *.go ./
 
 RUN go build -o /server
 
-EXPOSE 8089
+EXPOSE 8080
 CMD ["/server"]
