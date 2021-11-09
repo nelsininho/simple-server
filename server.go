@@ -44,7 +44,7 @@ func FetchCity(w http.ResponseWriter, req *http.Request) {
 	cityname := vars["name"]
 
 	//connect do db
-	db, err := sql.Open("postgres", "postgresql://docker:docker@localhost:5432/world?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://docker:docker@postgres-db/world?sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -73,7 +73,7 @@ func FetchCities(w http.ResponseWriter, req *http.Request) {
 	limit := m["limit"]
 
 	//connect to db
-	db, err := sql.Open("postgres", "postgresql://docker:docker@localhost:5432/world?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://docker:docker@postgres-db/world?sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}

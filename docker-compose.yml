@@ -1,0 +1,21 @@
+version: "3.6"
+
+services:
+  postgres:
+    image: bitnami/postgresql
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: world
+    ports:
+      - 5432:5432
+    volumes:
+      - ./dbsamples-0.1/world/:/docker-entrypoint-initdb.d/
+
+  server:
+    build: .
+    image: simple-server
+    container_name: server
+    ports:
+      - 8080:8080
