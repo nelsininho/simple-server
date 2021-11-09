@@ -103,5 +103,5 @@ func main() {
 	cityrouter.HandleFunc("/{name}", logging(FetchCity)).Methods("GET")
 	cityrouter.HandleFunc("", logging(FetchCities)).Methods("GET")
 
-	http.ListenAndServe(":8089", r)
+	http.ListenAndServe(":8080", r)
 }
