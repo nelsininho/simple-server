@@ -16,3 +16,11 @@ and start the server with
 ```sh
 docker run --name simple-server -d -p 8080:8080 server
 ```
+
+## Test
+Test the server by executing
+```sh
+curl http://localhost:8080/city/{cityname}
+curl http://localhost:8080/city
+curl http://localhost:8080/city?limit=10
+```
