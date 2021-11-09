@@ -10,6 +10,7 @@ import (
 )
 
 func TestCityHandler(t *testing.T) {
+	//define test struct
 	type test struct {
 		name string
 		url  string
@@ -17,6 +18,7 @@ func TestCityHandler(t *testing.T) {
 		want []*City
 	}
 
+	//define test cases
 	testcases := []test{
 		{
 			name: "Test with no real city name",
@@ -40,32 +42,39 @@ func TestCityHandler(t *testing.T) {
 	}
 
 	for _, test := range testcases {
+		//for each case run test
 		t.Run(test.name, func(t *testing.T) {
+			//mock request
 			req, _ := http.NewRequest(http.MethodGet, test.url, nil)
 			w := httptest.NewRecorder()
 
+			//populate mux vars
 			vars := map[string]string{
 				"name": test.city,
 			}
 			r := mux.SetURLVars(req, vars)
 
+			//execute function to test
 			FetchCity(w, r)
 			var target []*City
 			var city City
 			res := w.Result()
 
 			if len(test.want) == 0 {
+				//if no result expected, check if result is returned
 				if res.StatusCode != 404 {
-					t.Fatal("Found resource, but did not want to")
+					t.Fatal("Found resource, but did not expect to")
 				}
 			} else {
+				//if result is expected, decode json response
 				if err := json.NewDecoder(res.Body).Decode(&city); err != nil {
 					t.Fatal(err)
 				}
+				//check if it matches the expected result
 				target = append(target, &city)
 				for index, result := range target {
 					if !result.Compare(test.want[index]) {
-						t.Fatal("Result does not match expected state")
+						t.Fatalf("Result for index %v does not match expected state", index)
 					}
 				}
 			}
@@ -74,6 +83,7 @@ func TestCityHandler(t *testing.T) {
 }
 
 func TestCitiesHandler(t *testing.T) {
+	//define test struct
 	type test struct {
 		name      string
 		url       string
@@ -81,6 +91,7 @@ func TestCitiesHandler(t *testing.T) {
 		want      []*City
 	}
 
+	//define test cases
 	testcases := []test{
 		{
 			name:      "Call without limit",
@@ -111,26 +122,31 @@ func TestCitiesHandler(t *testing.T) {
 	}
 
 	for _, test := range testcases {
+		//for each case run test
 		t.Run(test.name, func(t *testing.T) {
+			//mock request
 			req, _ := http.NewRequest(http.MethodGet, test.url, nil)
 			w := httptest.NewRecorder()
 
+			//execute function to test
 			FetchCities(w, req)
 			var target []*City
 			res := w.Result()
 
+			//decode json response
 			if err := json.NewDecoder(res.Body).Decode(&target); err != nil {
 				t.Fatal(err)
 			}
 
-			if len(test.want) == 0 {
-				if test.wantCount != len(target) {
-					t.Fatal("Found resource, but did not want to")
-				}
-			} else {
+			if test.wantCount != len(target) {
+				//if number of results does not match expected number of results, fail
+				t.Fatalf("Number of returned resources (%v) does not match expected value %v", len(target), test.wantCount)
+			}
+			if len(test.want) != 0 {
+				//check if results match expected results
 				for index, result := range target {
 					if !result.Compare(test.want[index]) {
-						t.Fatal("Result does not match expected state")
+						t.Fatalf("Result for index %v does not match expected state", index)
 					}
 				}
 			}
