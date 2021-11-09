@@ -14,7 +14,7 @@ docker run --name postgres-db -d -p 5432:5432 postgres-example
 ```
 and start the server with
 ```sh
-docker run --name simple-server -d -p 8080:8080 server
+docker run --name server -d -p 8080:8080 simple-server
 ```
 
 ## Usage
