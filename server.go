@@ -99,6 +99,7 @@ func FetchCities(w http.ResponseWriter, req *http.Request) {
 func main() {
 	r := mux.NewRouter()
 
+	//create endpoint for returning city by name and for returning multiple cities
 	cityrouter := r.PathPrefix("/city").Subrouter()
 	cityrouter.HandleFunc("/{name}", logging(FetchCity)).Methods("GET")
 	cityrouter.HandleFunc("", logging(FetchCities)).Methods("GET")
