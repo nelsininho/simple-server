@@ -9,22 +9,24 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type TestCase struct {
-	Url  string
-	Name string
-	Want []*City
+type test struct {
+	name string
+	url  string
+	city string
+	want []*City
 }
 
 func TestCityHandler(t *testing.T) {
-	testcases := []TestCase{
+	testcases := []test{
 		/*{
 			Url:  "/city",
 			Name: "NoRealCityName",
 		},*/
 		{
-			Url:  "/city",
-			Name: "Aachen",
-			Want: []*City{
+			name: "Call with correct city name",
+			url:  "/city",
+			city: "Aachen",
+			want: []*City{
 				{
 					Id:          3097,
 					Name:        "Aachen",
@@ -48,33 +50,30 @@ func TestCityHandler(t *testing.T) {
 		},*/
 	}
 
-	for _, testcase := range testcases {
-		req, _ := http.NewRequest(http.MethodGet, testcase.Url, nil)
-		w := httptest.NewRecorder()
+	for _, test := range testcases {
+		t.Run(test.name, func(t *testing.T) {
+			req, _ := http.NewRequest(http.MethodGet, test.url, nil)
+			w := httptest.NewRecorder()
 
-		vars := map[string]string{
-			"name": testcase.Name,
-		}
-		r := mux.SetURLVars(req, vars)
-
-		FetchCity(w, r)
-		var target []*City
-		var city City
-		res := w.Result()
-
-		json.NewDecoder(res.Body).Decode(&city)
-		target = append(target, &city)
-		/*if reflect.TypeOf(target).Kind() != reflect.TypeOf(testcase.Want).Kind() {
-			target = []*City{target}
-		}*/
-		for index, result := range target {
-			if !result.Compare(testcase.Want[index]) {
-				t.Fatal("Result does not match expected state")
+			vars := map[string]string{
+				"name": test.city,
 			}
-		}
+			r := mux.SetURLVars(req, vars)
 
-		/*if len(testcase.Want) != len(json.NewEncoder(w).Encode(res)) || err != nil {
-			t.Fatalf(`Return value of call to route %q does not match %#q in length`, testcase.Url, testcase.Want)
-		}*/
+			FetchCity(w, r)
+			var target []*City
+			var city City
+			res := w.Result()
+
+			if err := json.NewDecoder(res.Body).Decode(&city); err != nil {
+				t.Fatal(err)
+			}
+			target = append(target, &city)
+			for index, result := range target {
+				if !result.Compare(test.want[index]) {
+					t.Fatal("Result does not match expected state")
+				}
+			}
+		})
 	}
 }
