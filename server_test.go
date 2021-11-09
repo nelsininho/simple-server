@@ -9,14 +9,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type test struct {
-	name string
-	url  string
-	city string
-	want []*City
-}
-
 func TestCityHandler(t *testing.T) {
+	type test struct {
+		name string
+		url  string
+		city string
+		want []*City
+	}
+
 	testcases := []test{
 		{
 			name: "Test with no real city name",
@@ -37,18 +37,6 @@ func TestCityHandler(t *testing.T) {
 				},
 			},
 		},
-		/*{
-			Url: "/city?limit=1",
-			Want: []*City{
-				{
-					Id:          1,
-					Name:        "Kabul",
-					Countrycode: "AFG",
-					District:    "Kabol",
-					Population:  1780000,
-				},
-			},
-		},*/
 	}
 
 	for _, test := range testcases {
@@ -75,6 +63,71 @@ func TestCityHandler(t *testing.T) {
 					t.Fatal(err)
 				}
 				target = append(target, &city)
+				for index, result := range target {
+					if !result.Compare(test.want[index]) {
+						t.Fatal("Result does not match expected state")
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestCitiesHandler(t *testing.T) {
+	type test struct {
+		name      string
+		url       string
+		wantCount int
+		want      []*City
+	}
+
+	testcases := []test{
+		{
+			name:      "Call without limit",
+			url:       "/city",
+			wantCount: 4079,
+		},
+		{
+			name:      "Call with limit of 2",
+			url:       "/city?limit=2",
+			wantCount: 2,
+			want: []*City{
+				{
+					Id:          1,
+					Name:        "Kabul",
+					Countrycode: "AFG",
+					District:    "Kabol",
+					Population:  1780000,
+				},
+				{
+					Id:          2,
+					Name:        "Qandahar",
+					Countrycode: "AFG",
+					District:    "Qandahar",
+					Population:  237500,
+				},
+			},
+		},
+	}
+
+	for _, test := range testcases {
+		t.Run(test.name, func(t *testing.T) {
+			req, _ := http.NewRequest(http.MethodGet, test.url, nil)
+			w := httptest.NewRecorder()
+
+			FetchCities(w, req)
+			var target []*City
+			res := w.Result()
+
+			if err := json.NewDecoder(res.Body).Decode(&target); err != nil {
+				t.Fatal(err)
+			}
+
+			if len(test.want) == 0 {
+				if test.wantCount != len(target) {
+					t.Fatal("Found resource, but did not want to")
+				}
+			} else {
 				for index, result := range target {
 					if !result.Compare(test.want[index]) {
 						t.Fatal("Result does not match expected state")
