@@ -2,24 +2,28 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
 type TestCase struct {
 	Url  string
+	Name string
 	Want []*City
 }
 
 func TestCityHandler(t *testing.T) {
-	var testcases = []TestCase{
+	testcases := []TestCase{
+		/*{
+			Url:  "/city",
+			Name: "NoRealCityName",
+		},*/
 		{
-			Url: "/city/NoRealCityName",
-		},
-		{
-			Url: "/city/Aachen",
+			Url:  "/city",
+			Name: "Aachen",
 			Want: []*City{
 				{
 					Id:          3097,
@@ -45,18 +49,32 @@ func TestCityHandler(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		req := httptest.NewRequest(http.MethodGet, testcase.Url, nil)
+		req, _ := http.NewRequest(http.MethodGet, testcase.Url, nil)
 		w := httptest.NewRecorder()
 
-		log.Println(req)
+		vars := map[string]string{
+			"name": testcase.Name,
+		}
+		r := mux.SetURLVars(req, vars)
 
-		FetchCity(w, req)
+		FetchCity(w, r)
+		var target []*City
+		var city City
 		res := w.Result()
-		log.Println(res)
-		log.Println(json.NewEncoder(w).Encode(res))
-	}
 
-	/*if !want.MatchString(msg) || err != nil {
-	    t.Fatalf(`Hello("Gladys") = %q, %v, want match for %#q, nil`, msg, err, want)
-	}*/
+		json.NewDecoder(res.Body).Decode(&city)
+		target = append(target, &city)
+		/*if reflect.TypeOf(target).Kind() != reflect.TypeOf(testcase.Want).Kind() {
+			target = []*City{target}
+		}*/
+		for index, result := range target {
+			if !result.Compare(testcase.Want[index]) {
+				t.Fatal("Result does not match expected state")
+			}
+		}
+
+		/*if len(testcase.Want) != len(json.NewEncoder(w).Encode(res)) || err != nil {
+			t.Fatalf(`Return value of call to route %q does not match %#q in length`, testcase.Url, testcase.Want)
+		}*/
+	}
 }
